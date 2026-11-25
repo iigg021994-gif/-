@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Сборник статей</title>
+<style>
+:root{--bg:#f5f6f8;--card:#fff;--tx:#1d2330;--mu:#69708a;--ac:#1f4e9c;--bd:#d9dde6;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171f;--card:#1e222c;--tx:#e6e8ee;--mu:#9aa1b5;--ac:#6c9cf0;--bd:#343a49}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+.w{max-width:860px;margin:0 auto;padding:20px 16px 60px}h1{font-size:22px;margin:0 0 4px}.sub{color:var(--mu);margin:0 0 18px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-bottom:14px}
+#drop{border:2px dashed var(--bd);text-align:center;padding:26px;cursor:pointer;color:var(--mu)}#drop.on{border-color:var(--ac);color:var(--ac)}
+button{font:inherit;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:8px;padding:7px 12px;cursor:pointer}
+button.p{background:var(--ac);border-color:var(--ac);color:#fff}button:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}input[type=text],input[type=number],select{font:inherit;border:1px solid var(--bd);background:var(--bg);color:var(--tx);border-radius:6px;padding:5px 8px;min-width:0}
+.it{display:flex;gap:8px;align-items:center;border:1px solid var(--bd);border-radius:8px;padding:8px;margin-bottom:6px;background:var(--card)}
+.it.drag{opacity:.4}.it.over{border-color:var(--ac)}.n{width:26px;text-align:center;color:var(--mu)}.h{cursor:grab;color:var(--mu);padding:0 4px;user-select:none}
+.f{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}.f input{width:100%}.sn{max-width:180px}.ar{padding:3px 8px}
+.mu{color:var(--mu);font-size:13px}
+#ov{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;z-index:50;padding:16px}#ov.on{display:flex}#ed{background:var(--card);border-radius:10px;margin:auto;width:100%;max-width:820px;max-height:100%;display:flex;flex-direction:column;padding:14px}#et{flex:1;overflow:auto;border:1px solid var(--bd);border-radius:6px;padding:12px;margin:10px 0;min-height:240px;background:var(--bg)}#et table{border-collapse:collapse}#et td,#et th{border:1px solid var(--bd);padding:4px 6px}#et img{max-width:100%}#tb{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}#tb button{padding:5px 10px}.err{color:#c0392b;font-size:13px}label{display:flex;gap:6px;align-items:center}
+</style></head><body><div class="w">
+<h1>Сборник статей</h1><p class="sub">Загрузите статьи (.docx) — они выстроятся по алфавиту фамилий авторов. Порядок можно изменить вручную, затем скачать общий файл Word.</p>
+<div class="card"><div id="drop">Нажмите или перетащите сюда статьи (.docx)<input id="file" type="file" accept=".docx" multiple hidden></div><div id="msg" class="mu" style="margin-top:8px"></div></div>
+<div class="card"><div class="row"><input type="text" id="ctitle" placeholder="Название сборника (необязательно)" style="flex:1"><label><input type="checkbox" id="pb" checked> Каждая статья с новой страницы</label></div>
+<div class="mu" style="margin-top:6px">Если галочку снять, статьи пойдут подряд через 3 пустые строки.</div>
+<div class="row" style="margin-top:10px"><label>Шрифт <select id="font"><option>Times New Roman</option><option>Arial</option><option>Calibri</option><option>Cambria</option><option>Georgia</option><option>Verdana</option><option>Tahoma</option><option>Courier New</option></select></label><label>Размер, pt <input type="number" id="fsz" value="14" min="6" max="40" step="0.5" style="width:70px"></label></div></div>
+<div class="card"><div class="row" style="margin-bottom:10px"><button id="sort">Сортировать А→Я</button><button id="save">💾 Сохранить проект</button><button id="open">📂 Открыть проект</button><input id="pf" type="file" accept=".json,application/json" hidden><button id="clear">Очистить всё</button><span class="mu" id="cnt"></span></div>
+<div id="list"><div class="mu">Статей пока нет.</div></div></div>
+<div class="row"><button class="p" id="gen" disabled>Сформировать и скачать Word</button><span id="gmsg" class="mu"></span></div>
+</div>
+<div id="ov"><div id="ed"><div class="row"><b id="eh" style="flex:1"></b><button id="es" class="p">Сохранить</button><button id="ec">Отмена</button></div><div id="tb"><button data-c="justifyLeft">⬅ По левому краю</button><button data-c="justifyCenter">↔ По центру</button><button data-c="justifyRight">➡ По правому краю</button><button data-c="justifyFull">☰ По ширине</button><button data-c="bold"><b>Ж</b></button><button data-c="italic"><i>К</i></button><button data-c="underline"><u>Ч</u></button></div>
+<div id="et" contenteditable="true"></div><div class="mu">Редактируйте текст прямо здесь (таблицы тоже). Чтобы изменить выравнивание, поставьте курсор в абзац (или выделите несколько абзацев) и нажмите кнопку. Изменения попадут в итоговый Word.</div></div></div>
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+<script>
+window.docxReady=(async()=>{const u=["https://cdn.jsdelivr.net/npm/docx@7.8.2/build/index.js","https://cdnjs.cloudflare.com/ajax/libs/docx/7.1.0/docx.min.js","https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.js","https://unpkg.com/docx@7.8.2/build/index.js"];
+for(const s of u){if(window.docx&&window.docx.Document)return;
+await new Promise(r=>{const e=document.createElement('script');e.src=s;e.onload=e.onerror=r;document.head.appendChild(e)});}
+if(!(window.docx&&window.docx.Document))throw new Error('Не удалось загрузить библиотеку docx. Проверьте интернет и попробуйте ещё раз.');})();
+window.docxReady.catch(()=>{});
+</script>
+<script>
+const U="А-ЯЁӘІҢҒҮҰҚӨҺA-Z",L="а-яёәіңғүұқөһa-z'’\\-";
+const NAME=new RegExp("^["+U+"]["+L+"]+(\\s+["+U+"]["+L+"]+){1,2}$"),INI=new RegExp("^["+U+"]["+L+"]+\\s+["+U+"]\\.\\s?["+U+"]\\.?$");
+let items=[],uid=0,dragId=null;
+const $=id=>document.getElementById(id);
+const cmp=(a,b)=>a.surname.localeCompare(b.surname,'kk',{sensitivity:'base'})||a.title.localeCompare(b.title,'kk');
+function guess(blocks){
+  const lines=blocks.map(t=>t.replace(/\s+/g,' ').trim()).filter(Boolean).slice(0,14);
+  let sn='',title=lines[0]||'';
+  for(const l of lines){if(l.length<60&&(NAME.test(l)||INI.test(l))){sn=l.split(' ')[0];break}}
+  return{surname:sn,title:title.slice(0,150)};
+}
+async function addFiles(files){
+  $('msg').innerHTML='';let errs=[];
+  for(const f of files){
+    if(!/\.docx$/i.test(f.name)){errs.push(f.name+': нужен .docx');continue}
+    try{
+      const r=await mammoth.convertToHtml({arrayBuffer:await f.arrayBuffer()});
+      const d=document.createElement('div');d.innerHTML=r.value;
+      const g=guess([...d.children].map(e=>e.textContent));
+      items.push({id:++uid,name:f.name,html:r.value,...g});
+    }catch(e){errs.push(f.name+': не удалось прочитать')}
+  }
+  items.sort(cmp);render();
+  if(errs.length)$('msg').innerHTML='<span class="err">'+errs.join('<br>')+'</span>';
+}
+function render(){
+  const l=$('list');l.innerHTML='';
+  if(!items.length)l.innerHTML='<div class="mu">Статей пока нет.</div>';
+  items.forEach((it,i)=>{
+    const e=document.createElement('div');e.className='it';e.draggable=true;
+    e.innerHTML='<span class="h" title="Перетащить">⋮⋮</span><span class="n">'+(i+1)+'</span><div class="f"><div class="row"><input type="text" class="sn" value="" placeholder="Фамилия"><span class="mu">'+esc(it.name)+'</span></div><input type="text" class="tt" placeholder="Название"></div><button class="ar e" title="Редактировать текст">✎ Текст</button><button class="ar u">↑</button><button class="ar d">↓</button><button class="ar x">✕</button>';
+    const sn=e.querySelector('.sn'),tt=e.querySelector('.tt');sn.value=it.surname;tt.value=it.title;
+    if(!it.surname)sn.style.borderColor='#c0392b';
+    sn.oninput=()=>{it.surname=sn.value;sn.style.borderColor=''};tt.oninput=()=>it.title=tt.value;
+    e.querySelector('.e').onclick=()=>openEd(it);e.querySelector('.u').onclick=()=>mv(i,-1);e.querySelector('.d').onclick=()=>mv(i,1);
+    e.querySelector('.x').onclick=()=>{items.splice(i,1);render()};
+    e.ondragstart=()=>{dragId=it.id;e.classList.add('drag')};e.ondragend=()=>{e.classList.remove('drag');dragId=null};
+    e.ondragover=ev=>{ev.preventDefault();e.classList.add('over')};e.ondragleave=()=>e.classList.remove('over');
+    e.ondrop=ev=>{ev.preventDefault();const a=items.findIndex(x=>x.id===dragId);if(a<0)return;const[m]=items.splice(a,1);items.splice(items.findIndex(x=>x.id===it.id)+(a<i?1:0),0,m);render()};
+    l.appendChild(e);
+  });
+  $('gen').disabled=!items.length;$('cnt').textContent=items.length?'Статей: '+items.length:'';
+}
+let cur=null;
+document.querySelectorAll('#tb button').forEach(b=>{b.onmousedown=e=>e.preventDefault();b.onclick=()=>{$('et').focus();document.execCommand(b.dataset.c)}});
+function openEd(it){cur=it;$('eh').textContent=it.name;$('et').innerHTML=it.html;$('ov').classList.add('on')}
+$('es').onclick=()=>{if(cur)cur.html=$('et').innerHTML;$('ov').classList.remove('on');cur=null};
+$('ec').onclick=()=>{$('ov').classList.remove('on');cur=null};
+function mv(i,d){const j=i+d;if(j<0||j>=items.length)return;[items[i],items[j]]=[items[j],items[i]];render()}
+function esc(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+const drop=$('drop');drop.onclick=()=>$('file').click();$('file').onchange=e=>{addFiles([...e.target.files]);e.target.value=''};
+drop.ondragover=e=>{e.preventDefault();drop.classList.add('on')};drop.ondragleave=()=>drop.classList.remove('on');
+drop.ondrop=e=>{e.preventDefault();drop.classList.remove('on');if(e.dataTransfer.files.length)addFiles([...e.dataTransfer.files])};
+$('sort').onclick=()=>{items.sort(cmp);render()};
+$('save').onclick=()=>{if(!items.length){alert('Список пуст — сохранять нечего.');return}
+const p={v:1,ctitle:$('ctitle').value,pb:$('pb').checked,font:$('font').value,fsz:$('fsz').value,items:items.map(({name,html,surname,title})=>({name,html,surname,title}))};
+const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(p)],{type:'application/json'}));a.download='Сборник-проект.json';document.body.appendChild(a);a.click();a.remove();$('msg').textContent='Проект сохранён в файл «Сборник-проект.json»'};
+$('open').onclick=()=>$('pf').click();
+$('pf').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+try{const p=JSON.parse(await f.text());if(!Array.isArray(p.items))throw 0;
+if(items.length&&!confirm('Заменить текущий список статьями из проекта?'))return;
+items=p.items.map(x=>({id:++uid,name:x.name||'',html:x.html||'',surname:x.surname||'',title:x.title||''}));
+$('ctitle').value=p.ctitle||'';$('pb').checked=p.pb!==false;if(p.font)$('font').value=p.font;if(p.fsz)$('fsz').value=p.fsz;render();$('msg').textContent='Проект открыт: статей '+items.length}
+catch(err){$('msg').innerHTML='<span class="err">Не удалось открыть проект: неверный файл.</span>'}};$('clear').onclick=()=>{if(items.length&&confirm('Удалить все статьи из списка?')){items=[];render()}};
+
+/* HTML -> docx */
+const D=()=>window.docx;let FONT="Times New Roman",SZ=28;
+function b64(u){const s=atob(u.split(',')[1]),a=new Uint8Array(s.length);for(let i=0;i<s.length;i++)a[i]=s.charCodeAt(i);return a}
+function imgSize(u){return new Promise(r=>{const i=new Image();i.onload=()=>r([i.naturalWidth,i.naturalHeight]);i.onerror=()=>r([300,200]);i.src=u})}
+function al(e,def){const a=((e.style&&e.style.textAlign)||e.getAttribute('align')||'').toLowerCase(),A=D().AlignmentType;return({left:A.LEFT,start:A.LEFT,center:A.CENTER,right:A.RIGHT,end:A.RIGHT,justify:A.JUSTIFIED})[a]||def}
+async function runs(n,st){
+  const{TextRun,ImageRun}=D(),out=[];
+  for(const c of n.childNodes){
+    if(c.nodeType===3){if(c.textContent)out.push(new TextRun({text:c.textContent,font:FONT,size:SZ,...st}));continue}
+    if(c.nodeType!==1)continue;const t=c.tagName.toLowerCase();
+    if(t==='br'){out.push(new TextRun({break:1}));continue}
+    if(t==='img'){try{let[w,h]=await imgSize(c.src);const k=Math.min(1,560/w);out.push(new ImageRun({data:b64(c.src),transformation:{width:Math.round(w*k),height:Math.round(h*k)}}))}catch(e){}continue}
+    const s={...st};if(t==='strong'||t==='b')s.bold=true;if(t==='em'||t==='i')s.italics=true;if(t==='u')s.underline={};if(t==='sup')s.superScript=true;if(t==='sub')s.subScript=true;
+    out.push(...await runs(c,s));
+  }
+  return out;
+}
+async function blocks(parent,ind=0){
+  const{Paragraph,Table,TableRow,TableCell,WidthType,AlignmentType}=D(),out=[];
+  for(const e of parent.children){
+    const t=e.tagName.toLowerCase();
+    if(/^h[1-6]$/.test(t)){out.push(new Paragraph({children:await runs(e,{bold:true}),alignment:al(e,AlignmentType.CENTER),spacing:{before:200,after:120}}))}
+    else if(t==='p'||(t==='div'&&!e.querySelector('p,div,table,ul,ol,h1,h2,h3,h4,h5,h6'))){const r=await runs(e,{});out.push(new Paragraph({children:r,alignment:al(e,AlignmentType.JUSTIFIED),spacing:{after:80},indent:ind?{left:ind}:{firstLine:0}}))}
+    else if(t==='ul'||t==='ol'){let k=0;for(const li of e.children){k++;const mk=t==='ul'?'•\t':k+'.\t';const r=await runs(li,{});const{TextRun}=D();out.push(new Paragraph({children:[new TextRun({text:mk,font:FONT,size:SZ}),...r],indent:{left:ind+567,hanging:340},alignment:al(li,AlignmentType.JUSTIFIED),spacing:{after:40}}));
+      for(const sub of li.querySelectorAll(':scope > ul, :scope > ol'))out.push(...await blocks({children:[sub]},ind+567))}}
+    else if(t==='table'){
+      const rows=[];for(const tr of e.querySelectorAll('tr')){const cells=[];
+        for(const td of tr.children){const ps=[];const inner=td.querySelectorAll('p');
+          if(inner.length)for(const p of inner)ps.push(new Paragraph({children:await runs(p,{}),alignment:al(p,undefined)}));else ps.push(new Paragraph({children:await runs(td,{})}));
+          cells.push(new TableCell({children:ps,columnSpan:+td.getAttribute('colspan')||1,rowSpan:+td.getAttribute('rowspan')||1,margins:{top:40,bottom:40,left:80,right:80}}))}
+        if(cells.length)rows.push(new TableRow({children:cells}))}
+      if(rows.length){out.push(new Table({rows,width:{size:100,type:WidthType.PERCENTAGE}}));out.push(new Paragraph({text:''}))}}
+    else if(e.children.length)out.push(...await blocks(e,ind));
+  }
+  return out;
+}
+$('gen').onclick=async()=>{
+  const btn=$('gen');btn.disabled=true;$('gmsg').textContent='Формирую файл…';
+  try{
+    await window.docxReady;
+    FONT=$('font').value;SZ=Math.round((+$('fsz').value||14)*2);
+    const{Document,Packer,Paragraph,TextRun,AlignmentType,PageBreak}=D(),kids=[];
+    const ct=$('ctitle').value.trim();
+    if(ct){kids.push(new Paragraph({children:[new TextRun({text:ct,bold:true,font:FONT,size:SZ+4})],alignment:AlignmentType.CENTER,spacing:{after:300}}))}
+    for(let i=0;i<items.length;i++){
+      const d=document.createElement('div');d.innerHTML=items[i].html;
+      if(i>0){if($('pb').checked)kids.push(new Paragraph({children:[new PageBreak()]}));else for(let k=0;k<3;k++)kids.push(new Paragraph({children:[new TextRun({text:'',font:FONT,size:SZ})]}))}
+      kids.push(...await blocks(d));
+      
+    }
+    const doc=new Document({styles:{default:{document:{run:{font:FONT,size:SZ}}}},sections:[{properties:{page:{margin:{top:1134,bottom:1134,left:1701,right:850}}},children:kids}]});
+    const blob=await Packer.toBlob(doc),a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);a.download='Сборник.docx';document.body.appendChild(a);a.click();a.remove();
+    $('gmsg').textContent='Готово — файл скачан.';
+  }catch(e){$('gmsg').innerHTML='<span class="err">Ошибка: '+esc(String(e.message||e))+'</span>'}
+  btn.disabled=!items.length;
+};
+if(typeof mammoth==='undefined')$('msg').innerHTML='<span class="err">Не загрузились библиотеки (нужен интернет).</span>';
+</script></body></html>
